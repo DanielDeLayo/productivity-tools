@@ -3,6 +3,9 @@
 set(CILKIAF_SOURCES
   cilkiaf.cpp
   csirt.cpp
+  bounded_iaf.cpp
+  increment_and_freeze.cpp
+  projection.cpp
   )
 
 include_directories(${CILKTOOLS_SOURCE_DIR}/include)

@@ -7,10 +7,6 @@
 
 #define TRACE_CALLS 1
 
-
-syntaxerorr
-
-#include "sstack.h"
 #include "outs_red.h"
 
 #define CILKTOOL_API extern "C" __attribute__((visibility("default")))
@@ -24,12 +20,10 @@ cilk::ostream_reducer<char> outs_red([]() -> std::basic_ostream<char>& {
             return std::cout;
             }());
 #endif
-class CilkgraphImpl_t {
+class CilkiafImpl_t {
 public:
-  //shadow_stack_t stack;
 
 private:
-  shadow_stack_reducer stack;
   // Need to manually register reducer
   //
   // > warning: reducer callbacks not implemented for structure members
@@ -48,13 +42,12 @@ private:
     }
 
     struct RAII {
-      CilkgraphImpl_t& this_;
+      CilkiafImpl_t& this_;
 
       RAII(decltype(this_) this_) : this_(this_) {
 #ifndef OUTS_CERR
         reducer_register(outs_red);
 #endif
-        reducer_register(this_.stack);
         const char* envstr = getenv("CILKSCALE_OUT");
       }
 
@@ -62,59 +55,24 @@ private:
 #ifndef OUTS_CERR
         reducer_unregister(outs_red);
 #endif
-        reducer_unregister(this_.stack);
       }
     } raii;
   } register_reducers = {.raii{*this}};
 
 public:
-  CilkgraphImpl_t() : stack()
+  CilkiafImpl_t()
          // Not only are reducer callbacks not implemented, the hyperobject
          // is not even default constructed unless explicitly constructed.
   {}
 
-  ~CilkgraphImpl_t() {}
+  ~CilkiafImpl_t() {}
 
   void register_write(uint64_t addr, source_loc_t store) {
-    stack.register_write(addr, store);
-  }
-  void register_alloca(const void* addr, size_t nb) {
-    stack.register_alloca(addr, nb);
-  }
-  void enter_func(const csi_id_t func_id, const bool may_spawn) {
-    if (may_spawn)
-      stack.push_boundary(func_id);
-  }
-  void exit_func(const csi_id_t func_id, const bool may_spawn) {
-    if (may_spawn)
-    {
-      stack.pop_boundary(func_id);
-    } 
-  }
-  void task(const csi_id_t task_id) {
-    stack.push_task(task_id);
-  }
-  void exit_task(const csi_id_t task_id) {
-    multimap_t collisions;
-    stack.join(collisions);
-    if (!collisions.empty())
-      outs_red << "\nRACE CONDITION TASK EXIT" << std::endl << collisions << std::endl << std::endl;
-  }
-  void add_sp_frame() {
-    stack.add_sp_frame();
-  }
-  void add_continue_frame() {
-    stack.add_continue_frame();
-  }
-  void enter_serial() {
-    multimap_t collisions;
-    stack.enter_serial(collisions);
-    if (!collisions.empty())
-      outs_red << "\nRACE CONDITION DURING SYNC" << std::endl << collisions << std::endl << std::endl;
+    
   }
 };
 
-static std::unique_ptr<CilkgraphImpl_t> tool =
+static std::unique_ptr<CilkiafImpl_t> tool =
 std::make_unique<decltype(tool)::element_type>();
 
 static unsigned worker_number() {
@@ -140,7 +98,6 @@ void __csi_func_entry(const csi_id_t func_id, const func_prop_t prop) {
 #endif
   auto entry = __csi_get_func_source_loc(func_id);
   outs_red << "FUNC: " << entry->name << " has " << prop.num_sync_reg << " sync regions " << std::endl;
-  tool->enter_func(func_id, prop.may_spawn);
 }
 
 CILKTOOL_API
@@ -151,7 +108,6 @@ void __csi_func_exit(const csi_id_t func_exit_id, const csi_id_t func_id,
       << "[W" << worker_number() << "] func_exit(feid=" << func_exit_id
       << ", fid=" << func_id << ", " << prop.may_spawn << ")" << std::endl;
 #endif
-  tool->exit_func(func_id, prop.may_spawn);
 }
 
 CILKTOOL_API void __csi_before_load(const csi_id_t load_id, const void *addr,
@@ -221,7 +177,6 @@ CILKTOOL_API void __csi_task(const csi_id_t task_id, const csi_id_t detach_id,
       << "[W" << worker_number() << "] task(tid=" << task_id << ", did="
       << detach_id << ", nsr=" << prop.num_sync_reg << ")" << std::endl;
 #endif
-  tool->task(task_id);
 }
 
 CILKTOOL_API
@@ -234,7 +189,6 @@ void __csi_task_exit(const csi_id_t task_exit_id, const csi_id_t task_id,
       << ", tid=" << task_id << ", did=" << detach_id << ", sr="
       << sync_reg << ")" << std::endl;
 #endif
-  tool->exit_task(task_id);
 }
 
 CILKTOOL_API
@@ -257,7 +211,6 @@ void __csi_detach_continue(const csi_id_t detach_continue_id,
       << detach_continue_id << ", did=" << detach_id << ", sr=" << sync_reg
       << ", unwind=" << prop.is_unwind << ")" << std::endl;
 #endif
-  tool->add_continue_frame();
 }
 
 CILKTOOL_API
@@ -276,7 +229,6 @@ void __csi_after_sync(const csi_id_t sync_id, const unsigned sync_reg) {
       << "[W" << worker_number() << "] after_sync(sid=" << sync_id << ", sr="
       << sync_reg << ")" << std::endl;
 #endif
-  tool->enter_serial();
 }
 
 CILKTOOL_API
@@ -288,7 +240,6 @@ void __csi_after_alloca(const csi_id_t alloca_id, const void *addr,
       << ", addr=" << addr << ", nb=" << num_bytes << ", static="
       << prop.is_static << ")" << std::endl;
 #endif
-  tool->register_alloca(addr, num_bytes);
 }
 
 CILKTOOL_API
