@@ -4,12 +4,20 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <string.h>
+
+#include "bounded_iaf.h"
 
 #define TRACE_CALLS 1
 
 #include "outs_red.h"
 
 #define CILKTOOL_API extern "C" __attribute__((visibility("default")))
+
+CILKTOOL_API
+int __cilkrts_is_initialized(void);
+CILKTOOL_API
+void __cilkrts_internal_set_nworkers(unsigned int nworkers);
 
 std::unique_ptr<std::ofstream> outf;
 #ifndef OUTS_CERR
@@ -20,10 +28,11 @@ cilk::ostream_reducer<char> outs_red([]() -> std::basic_ostream<char>& {
             return std::cout;
             }());
 #endif
-class CilkiafImpl_t {
-public:
 
-private:
+class CilkiafImpl_t {
+
+  BoundedIAF iaf;
+
   // Need to manually register reducer
   //
   // > warning: reducer callbacks not implemented for structure members
@@ -60,15 +69,18 @@ private:
   } register_reducers = {.raii{*this}};
 
 public:
-  CilkiafImpl_t()
+
+  CilkiafImpl_t() : iaf(65536)
          // Not only are reducer callbacks not implemented, the hyperobject
          // is not even default constructed unless explicitly constructed.
   {}
 
-  ~CilkiafImpl_t() {}
+  ~CilkiafImpl_t() {
+    iaf.dump_success_function(outs_red, iaf.get_success_function(), 1);
+  }
 
   void register_write(uint64_t addr, source_loc_t store) {
-    
+    iaf.memory_access(addr);
   }
 };
 
@@ -83,6 +95,18 @@ static unsigned worker_number() {
 }
 
 CILKTOOL_API void __csi_init() {
+  if (__cilkrts_is_initialized()) {
+    __cilkrts_internal_set_nworkers(1);
+  } else {
+    // Force the number of Cilk workers to be 1.
+    const char *e = getenv("CILK_NWORKERS");
+    if (!e || 0 != strcmp(e, "1")) {
+      if (setenv("CILK_NWORKERS", "1", 1)) {
+        printf("Error setting CILK_NWORKERS to be 1\n");
+        exit(1);
+      }
+    }
+  }
 }
 
 CILKTOOL_API void __csi_unit_init(const char* const file_name,
