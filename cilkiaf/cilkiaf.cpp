@@ -71,17 +71,28 @@ class CilkiafImpl_t {
 
 public:
 
-  CilkiafImpl_t() : iaf(65536)
+  int read_maxcache()
+  {
+    const char* envstr = getenv("CILKIAF_CACHE");
+    if (!envstr)
+      return 65536;
+    return atoi(envstr) ? atoi(envstr) : 65536;
+  }
+
+  
+  CilkiafImpl_t() : iaf(read_maxcache(), read_maxcache())
          // Not only are reducer callbacks not implemented, the hyperobject
          // is not even default constructed unless explicitly constructed.
-  {}
+  {
+  }
 
   ~CilkiafImpl_t() {
-    iaf.dump_success_function(outs_red, iaf.get_success_function(), 1);
+    if (getenv("CILKIAF_PRINT"))
+      iaf.dump_success_function(outs_red, iaf.get_success_function(), 1);
   }
 
   void register_write(uint64_t addr, source_loc_t store) {
-    iaf.memory_access(addr);
+      iaf.memory_access(addr);
   }
 };
 
