@@ -13,6 +13,8 @@
 
 #include "outs_red.h"
 
+#define CACHE_LINE_SIZE 64
+
 #define CILKTOOL_API extern "C" __attribute__((visibility("default")))
 
 CILKTOOL_API
@@ -80,7 +82,7 @@ public:
   }
 
   
-  CilkiafImpl_t() : iaf(read_maxcache(), read_maxcache())
+  CilkiafImpl_t() : iaf(4*read_maxcache(), read_maxcache())
          // Not only are reducer callbacks not implemented, the hyperobject
          // is not even default constructed unless explicitly constructed.
   {
@@ -91,8 +93,11 @@ public:
       iaf.dump_success_function(outs_red, iaf.get_success_function(), 1);
   }
 
-  void register_write(uint64_t addr, source_loc_t store) {
-      iaf.memory_access(addr);
+  void register_write(uint64_t addr, int32_t num_bytes, source_loc_t store) {
+      do {
+        iaf.memory_access(addr / CACHE_LINE_SIZE);
+        num_bytes -= CACHE_LINE_SIZE;
+      } while(num_bytes > 0);
   }
 };
 
@@ -141,7 +146,7 @@ CILKTOOL_API void __csi_before_load(const csi_id_t load_id, const void *addr,
   if (prop.is_read_before_write_in_bb)
     return;
   auto store = __csi_get_load_source_loc(load_id);
-  tool->register_write((uint64_t)addr, *store);
+  tool->register_write((uint64_t)addr, num_bytes, *store);
 #ifdef TRACE_CALLS
   outs_red << "LOAD ON (" << store->name << ", " << store->line_number << ")" << std::endl;
 #endif
@@ -173,7 +178,7 @@ CILKTOOL_API void __csi_before_store(const csi_id_t store_id, const void *addr,
       << ", threadlocal=" << prop.is_thread_local << ")" << std::endl;
 #endif
   auto store = __csi_get_store_source_loc(store_id);
-  tool->register_write((uint64_t)addr, *store);
+  tool->register_write((uint64_t)addr, num_bytes, *store);
 #ifdef TRACE_CALLS
   outs_red << "WRITE ON (" << store->name << ", " << store->line_number << ")" << std::endl;
 #endif
