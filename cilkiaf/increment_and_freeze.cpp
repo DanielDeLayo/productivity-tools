@@ -18,6 +18,7 @@
  */
 
 #include "increment_and_freeze.h"
+#include "cilk/cilk.h"
 
 #include <algorithm>
 //#include <omp.h>
@@ -127,8 +128,6 @@ void IncrementAndFreeze::update_hits_vector(std::vector<request>& reqs,
 
   // We want to spin up a bunch of threads, but only start with 1.
   // More will be added in by do_projections.
-#pragma omp parallel
-#pragma omp single
   do_projections(hits_vector, std::move(init_seq));
 
   STOPTIME(projections);
@@ -175,7 +174,7 @@ void IncrementAndFreeze::do_projections(SuccessVector& hits_vector, ProjSequence
       cur = std::move(remaining_sequence);
 
       // create a task to process split off sequence
-#pragma omp task shared(hits_vector) mergeable final(dist <= 8192)
+      //cilk_spawn do_projections(hits_vector, std::move(split_sequence));
       do_projections(hits_vector, std::move(split_sequence));
     }
 
