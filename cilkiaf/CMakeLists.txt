@@ -3,12 +3,12 @@
 set(CILKIAF_SOURCES
   cilkiaf.cpp
   csirt.cpp
-  bounded_iaf.cpp
-  increment_and_freeze.cpp
-  projection.cpp
+  Increment-and-Freeze/bounded_iaf.cc
+  Increment-and-Freeze/increment_and_freeze.cc
+  Increment-and-Freeze/projection.cc
   )
 
-include_directories(${CILKTOOLS_SOURCE_DIR}/include)
+include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze)
 
 set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS})
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_CFLAGS)

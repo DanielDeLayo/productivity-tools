@@ -1,0 +1,3 @@
+[submodule "cilkiaf/Increment-and-Freeze"]
+	path = cilkiaf/Increment-and-Freeze
+	url = git@github.com:etwest/Increment-and-Freeze.git

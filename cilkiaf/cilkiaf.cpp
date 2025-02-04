@@ -103,9 +103,12 @@ public:
   }
 
   ~CilkiafImpl_t() {
+    
     if (getenv("CILKIAF_PRINT"))
     {
       iaf.dump_success_function(outs_red, iaf.get_success_function(), 1);
+      if (getenv("CILKIAF_PRINT") == "1")
+        return;
       for (size_t i = 0; i < local_iafs.size(); i++) {
         local_iafs[i].dump_success_function(outs_red, local_iafs[i].get_success_function(), 1);
       }
