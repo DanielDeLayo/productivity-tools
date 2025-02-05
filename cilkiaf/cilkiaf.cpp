@@ -99,7 +99,10 @@ public:
          // Not only are reducer callbacks not implemented, the hyperobject
          // is not even default constructed unless explicitly constructed.
   {
-    local_iafs.resize(__cilkrts_get_nworkers());
+    if (__cilkrts_is_initialized()) {
+      local_iafs.resize(__cilkrts_get_nworkers());
+    } else {
+    }
   }
 
   ~CilkiafImpl_t() {
@@ -107,7 +110,7 @@ public:
     if (getenv("CILKIAF_PRINT"))
     {
       iaf.dump_success_function(outs_red, iaf.get_success_function(), 1);
-      if (getenv("CILKIAF_PRINT") == "1")
+      if (atoi(getenv("CILKIAF_PRINT")) == 1)
         return;
       for (size_t i = 0; i < local_iafs.size(); i++) {
         local_iafs[i].dump_success_function(outs_red, local_iafs[i].get_success_function(), 1);
@@ -116,10 +119,14 @@ public:
   }
 
   void register_write(uint64_t addr, int32_t num_bytes, source_loc_t store) {
+#ifdef TRACE_CALLS
     //outs_red << "[" << worker_number() << "] Writing" << std::endl;
+#endif
     int32_t nbytes2 = num_bytes;
     uint64_t addr2 = addr;
+    // FIXME: local_iafs segfaults??
     do {
+      outs_red << local_iafs.size() << " < " << worker_number() << std::endl;
       local_iafs.at(worker_number()).memory_access(addr2 / CACHE_LINE_SIZE);
       nbytes2 -= CACHE_LINE_SIZE;
       addr2 += CACHE_LINE_SIZE;
@@ -140,7 +147,7 @@ std::make_unique<decltype(tool)::element_type>();
 
 CILKTOOL_API void __csi_init() {
   if (__cilkrts_is_initialized()) {
-    __cilkrts_internal_set_nworkers(1);
+    //__cilkrts_internal_set_nworkers(1);
   } else {
     /*
     // Force the number of Cilk workers to be 1.
