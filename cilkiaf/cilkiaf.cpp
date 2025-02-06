@@ -126,6 +126,7 @@ public:
     uint64_t addr2 = addr;
     // FIXME: local_iafs segfaults??
     do {
+      outs_red << &local_iafs << "!" << std::endl;
       outs_red << local_iafs.size() << " < " << worker_number() << std::endl;
       local_iafs.at(worker_number()).memory_access(addr2 / CACHE_LINE_SIZE);
       nbytes2 -= CACHE_LINE_SIZE;
