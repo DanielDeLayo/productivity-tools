@@ -14,14 +14,18 @@ cilk::ostream_reducer<char> outs_red([]() -> std::basic_ostream<char>& {
 #endif
 
 
-CilkiafImpl_t::CilkiafImpl_t() : iaf(4*read_maxcache(), read_maxcache()), local_iafs(__cilkrts_get_nworkers(), iaf)
-                                 // Not only are reducer callbacks not implemented, the hyperobject
-                                 // is not even default constructed unless explicitly constructed.
+CilkiafImpl_t::CilkiafImpl_t() 
+#ifdef CILKIAF_GLOBAL
+: iaf(4*read_maxcache(), read_maxcache())
+#endif
 {
-  if (__cilkrts_is_initialized()) {
-    //local_iafs.reserve(__cilkrts_get_nworkers());
+  uint64_t maxcache = read_maxcache();
 
-    //local_iafs.resize(__cilkrts_get_nworkers());
+  if (__cilkrts_is_initialized()) {
+    local_iafs.reserve(__cilkrts_get_nworkers());
+    for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
+      local_iafs.emplace_back(4*maxcache, maxcache);
+
   } else {
     assert(false);
   }
@@ -31,9 +35,9 @@ CilkiafImpl_t::~CilkiafImpl_t() {
 
   if (getenv("CILKIAF_PRINT"))
   {
-    //outs_red << &local_iafs << "!" << std::endl;
-    //outs_red << &iaf << "!" << std::endl;
+#ifdef CILKIAF_GLOBAL
     iaf.dump_success_function(outs_red, iaf.get_success_function(), 1);
+#endif
     if (atoi(getenv("CILKIAF_PRINT")) == 1)
       return;
     for (size_t i = 0; i < local_iafs.size(); i++) {
@@ -42,20 +46,18 @@ CilkiafImpl_t::~CilkiafImpl_t() {
   }
 }
 
-void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes, source_loc_t store) {
+void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
 #ifdef TRACE_CALLS
-  //outs_red << "[" << worker_number() << "] Writing" << std::endl;
+  outs_red << "[" << worker_number() << "] Writing" << std::endl;
 #endif
   int32_t nbytes2 = num_bytes;
   uint64_t addr2 = addr;
   do {
-    //outs_red << &local_iafs << "!" << std::endl;
-    //outs_red << this << "!!" << std::endl;
     local_iafs.at(worker_number()).memory_access(addr2 / CACHE_LINE_SIZE);
     nbytes2 -= CACHE_LINE_SIZE;
     addr2 += CACHE_LINE_SIZE;
   } while(nbytes2 > 0);
-
+#ifdef CILKIAF_GLOBAL
   const std::lock_guard<std::mutex> lock(iaf_lock);
 
   do {
@@ -63,6 +65,21 @@ void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes, source_loc_
     num_bytes -= CACHE_LINE_SIZE;
     addr += CACHE_LINE_SIZE;
   } while(num_bytes > 0);
+#endif
+}
+
+
+void CilkiafImpl_t::register_write_one(uint64_t addr) {
+#ifdef TRACE_CALLS
+  outs_red << "[" << worker_number() << "] Writing One" << std::endl;
+#endif
+
+  local_iafs.at(worker_number()).memory_access(addr / CACHE_LINE_SIZE);
+
+#ifdef CILKIAF_GLOBAL
+  const std::lock_guard<std::mutex> lock(iaf_lock);
+  iaf.memory_access(addr / CACHE_LINE_SIZE);
+#endif
 }
 
 

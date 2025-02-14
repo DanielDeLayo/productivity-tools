@@ -38,7 +38,9 @@ unsigned inline worker_number() {
 
 class CilkiafImpl_t {
   std::mutex iaf_lock;
+#ifdef CILKIAF_GLOBAL
   BoundedIAF iaf;
+#endif
   std::vector<BoundedIAF> local_iafs;
 
 
@@ -88,6 +90,7 @@ class CilkiafImpl_t {
   
   CilkiafImpl_t();
   ~CilkiafImpl_t();
-  void register_write(uint64_t addr, int32_t num_bytes, source_loc_t store);
+  void register_write(uint64_t addr, int32_t num_bytes);
+  void register_write_one(uint64_t addr);
 };
 

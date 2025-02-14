@@ -36,12 +36,12 @@ CILKTOOL_API void __csi_before_load(const csi_id_t load_id, const void *addr,
     << prop.is_thread_local << ", basic_read_before_write="
     << prop.is_read_before_write_in_bb << ")" << std::endl;
 #endif
-  if (prop.is_read_before_write_in_bb)
-    return;
-  auto store = __csi_get_load_source_loc(load_id);
-  //outs_red << "TOOL: " << tool.get() << std::endl;
-  //assert(tool.get() > 0);
-  tool->register_write((uint64_t)addr, num_bytes, *store);
+  //if (prop.is_read_before_write_in_bb)
+  //  return;
+  if (num_bytes <= CACHE_LINE_SIZE)
+    tool->register_write_one((uint64_t)addr);
+  else
+    tool->register_write((uint64_t)addr, num_bytes);
 #ifdef TRACE_CALLS
   outs_red << "LOAD ON (" << store->name << ", " << store->line_number << ")" << std::endl;
 #endif
@@ -72,9 +72,10 @@ CILKTOOL_API void __csi_before_store(const csi_id_t store_id, const void *addr,
     << prop.may_be_captured << ", atomic=" << prop.is_atomic
     << ", threadlocal=" << prop.is_thread_local << ")" << std::endl;
 #endif
-  auto store = __csi_get_store_source_loc(store_id);
-  //outs_red << "TOOL: " << tool.get() << std::endl;
-  tool->register_write((uint64_t)addr, num_bytes, *store);
+  if (num_bytes <= CACHE_LINE_SIZE)
+    tool->register_write_one((uint64_t)addr);
+  else
+    tool->register_write((uint64_t)addr, num_bytes);
 #ifdef TRACE_CALLS
   outs_red << "WRITE ON (" << store->name << ", " << store->line_number << ")" << std::endl;
 #endif
