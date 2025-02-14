@@ -2,6 +2,7 @@
 
 set(CILKIAF_SOURCES
   cilkiaf.cpp
+  cilkiaf_hooks.cpp
   csirt.cpp
   Increment-and-Freeze/bounded_iaf.cc
   Increment-and-Freeze/increment_and_freeze.cc
@@ -9,6 +10,7 @@ set(CILKIAF_SOURCES
   )
 
 set(CILKIAF_BITCODE_SOURCE
+  cilkiaf_hooks.cpp
   cilkiaf.cpp
   Increment-and-Freeze/bounded_iaf.cc
   Increment-and-Freeze/increment_and_freeze.cc
@@ -17,7 +19,7 @@ set(CILKIAF_BITCODE_SOURCE
 
 include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze)
 
-set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS})
+set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS} )
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_CFLAGS)
 append_list_if(CILKTOOLS_HAS_FDEBUG_DEFAULT_VERSION_EQ_4_FLAG
   -fdebug-default-version=4 CILKIAF_CFLAGS)
