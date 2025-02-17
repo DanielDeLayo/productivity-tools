@@ -16,7 +16,7 @@ cilk::ostream_reducer<char> outs_red([]() -> std::basic_ostream<char>& {
 
 CilkiafImpl_t::CilkiafImpl_t() 
 #ifdef CILKIAF_GLOBAL
-: iaf(4*read_maxcache(), read_maxcache())
+: iaf(65536, read_maxcache())
 #endif
 {
   uint64_t maxcache = read_maxcache();
@@ -24,7 +24,7 @@ CilkiafImpl_t::CilkiafImpl_t()
   if (__cilkrts_is_initialized()) {
     local_iafs.reserve(__cilkrts_get_nworkers());
     for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
-      local_iafs.emplace_back(4*maxcache, maxcache);
+      local_iafs.emplace_back(65536, maxcache);
 
   } else {
     assert(false);
