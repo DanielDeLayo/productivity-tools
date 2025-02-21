@@ -46,14 +46,24 @@ CilkiafImpl_t::~CilkiafImpl_t() {
   }
 }
 
+std::mutex test_lock;
+
+inline void locktest()
+{
+  const std::lock_guard<std::mutex> lock(test_lock);
+  
+} 
+
 void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
 #ifdef TRACE_CALLS
   outs_red << "[" << worker_number() << "] Writing" << std::endl;
 #endif
+  locktest();
+  return;
   int32_t nbytes2 = num_bytes;
   uint64_t addr2 = addr;
   do {
-    local_iafs.at(worker_number()).memory_access(addr2 / CACHE_LINE_SIZE);
+    local_iafs[worker_number()].memory_access(addr2 / CACHE_LINE_SIZE);
     nbytes2 -= CACHE_LINE_SIZE;
     addr2 += CACHE_LINE_SIZE;
   } while(nbytes2 > 0);
@@ -73,8 +83,10 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
 #ifdef TRACE_CALLS
   outs_red << "[" << worker_number() << "] Writing One" << std::endl;
 #endif
+  locktest();
+  return;
 
-  local_iafs.at(worker_number()).memory_access(addr / CACHE_LINE_SIZE);
+  local_iafs[worker_number()].memory_access(addr / CACHE_LINE_SIZE);
 
 #ifdef CILKIAF_GLOBAL
   const std::lock_guard<std::mutex> lock(iaf_lock);
