@@ -17,7 +17,7 @@ set(CILKIAF_BITCODE_SOURCE
   Increment-and-Freeze/projection.cc
   )
 
-include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze)
+include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze xxHash)
 
 set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS} )
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_CFLAGS)
