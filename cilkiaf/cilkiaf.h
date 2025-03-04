@@ -37,8 +37,8 @@ unsigned inline worker_number() {
 
 
 class CilkiafImpl_t {
-  std::mutex iaf_lock;
 #ifdef CILKIAF_GLOBAL
+  std::mutex iaf_lock;
   BoundedIAF iaf;
 #endif
   std::vector<BoundedIAF> local_iafs;

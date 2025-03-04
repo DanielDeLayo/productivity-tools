@@ -14,9 +14,12 @@ cilk::ostream_reducer<char> outs_red([]() -> std::basic_ostream<char>& {
 #endif
 
 
+constexpr short sampling_log2 = 10;
+constexpr size_t seed = 98721893579823;
+
 CilkiafImpl_t::CilkiafImpl_t() 
 #ifdef CILKIAF_GLOBAL
-: iaf(65536, read_maxcache())
+: iaf(sampling_log2, seed, 65536/(1 << sampling_log2), read_maxcache())
 #endif
 {
   uint64_t maxcache = read_maxcache();
@@ -24,7 +27,7 @@ CilkiafImpl_t::CilkiafImpl_t()
   if (__cilkrts_is_initialized()) {
     local_iafs.reserve(__cilkrts_get_nworkers());
     for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
-      local_iafs.emplace_back(65536, maxcache);
+      local_iafs.emplace_back(sampling_log2, seed, 65536/(1 << sampling_log2), maxcache);
 
   } else {
     assert(false);
