@@ -35,6 +35,7 @@ unsigned inline worker_number() {
 #pragma clang diagnostic pop
 }
 
+#define IAF_VERIFY 1
 
 class CilkiafImpl_t {
 #ifdef CILKIAF_GLOBAL
@@ -42,6 +43,9 @@ class CilkiafImpl_t {
   BoundedIAF iaf;
 #endif
   std::vector<BoundedIAF> local_iafs;
+#ifdef IAF_VERIFY
+  std::vector<BoundedIAF> local_verify_iafs;
+#endif
 
 
   // Need to manually register reducer
