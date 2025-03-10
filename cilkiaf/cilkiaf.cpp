@@ -41,24 +41,27 @@ CilkiafImpl_t::CilkiafImpl_t()
 }
 
 CilkiafImpl_t::~CilkiafImpl_t() {
+#ifdef IAF_VERIFY
+  for (size_t i = 0; i < local_iafs.size(); i++) {
+    outs_red << "sampled " << i << std::endl;
+    local_iafs[i].csv_success_function(outs_red, local_iafs[i].get_success_function(), 1);
+    outs_red << "verify " << i << std::endl;
+    local_verify_iafs[i].csv_success_function(outs_red, local_verify_iafs[i].get_success_function(), 1);
+  }
+  return;
+#endif
 
   if (getenv("CILKIAF_PRINT"))
   {
 #ifdef CILKIAF_GLOBAL
-    iaf.dump_success_function(outs_red, iaf.get_success_function(), 1);
+    iaf.csv_success_function(outs_red, iaf.get_success_function(), 1);
 #endif
     if (atoi(getenv("CILKIAF_PRINT")) == 1)
       return;
     for (size_t i = 0; i < local_iafs.size(); i++) {
-      local_iafs[i].dump_success_function(outs_red, local_iafs[i].get_success_function(), 1);
+      local_iafs[i].csv_success_function(outs_red, local_iafs[i].get_success_function(), 1);
     }
   }
-#ifdef IAF_VERIFY
-  for (size_t i = 0; i < local_iafs.size(); i++) {
-    local_iafs[i].dump_success_function(outs_red, local_iafs[i].get_success_function(), 1);
-    local_verify_iafs[i].dump_success_function(outs_red, local_verify_iafs[i].get_success_function(), 1);
-  }
-#endif
 }
 
 void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
