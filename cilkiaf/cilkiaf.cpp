@@ -20,19 +20,20 @@ constexpr size_t seed = 98721893579823;
 
 CilkiafImpl_t::CilkiafImpl_t() 
 #ifdef CILKIAF_GLOBAL
-: iaf(sampling_log2, seed, 65536, read_maxcache())
+: iaf(sampling_log2, seed, 0, 65536, read_maxcache())
 #endif
 {
   uint64_t maxcache = read_maxcache();
 
   if (__cilkrts_is_initialized()) {
-    local_iafs.reserve(__cilkrts_get_nworkers());
-    for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
-      local_iafs.emplace_back(sampling_log2, seed, 65536, maxcache);
+    local_iafs.reserve(__cilkrts_get_nworkers() * (1 << sampling_log2));
+    for (size_t part = 0; part < (1 << sampling_log2); part++)
+      for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
+        local_iafs.emplace_back(sampling_log2, seed, part, 65536, maxcache);
 #ifdef IAF_VERIFY
     local_verify_iafs.reserve(__cilkrts_get_nworkers());
     for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
-      local_verify_iafs.emplace_back(0, seed, 65536, maxcache);
+      local_verify_iafs.emplace_back(0, seed, 0, 65536, maxcache);
 #endif
 
   } else {
@@ -43,8 +44,10 @@ CilkiafImpl_t::CilkiafImpl_t()
 CilkiafImpl_t::~CilkiafImpl_t() {
 #ifdef IAF_VERIFY
   for (size_t i = 0; i < local_iafs.size(); i++) {
-    outs_red << "sampled " << i << std::endl;
-    local_iafs[i].csv_success_function(outs_red, local_iafs[i].get_success_function(), 1);
+    for (size_t part = 0; part < (1 << sampling_log2); part++) {
+      outs_red << "sampled " << i << " " << part << std::endl;
+      local_iafs[i].csv_success_function(outs_red, local_iafs[i + part*__cilkrts_get_nworkers()].get_success_function(), 1);
+    }
     outs_red << "verify " << i << std::endl;
     local_verify_iafs[i].csv_success_function(outs_red, local_verify_iafs[i].get_success_function(), 1);
   }
@@ -71,7 +74,8 @@ void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
   int32_t nbytes2 = num_bytes;
   uint64_t addr2 = addr;
   do {
-    local_iafs[worker_number()].memory_access(addr2 / CACHE_LINE_SIZE);
+    for (size_t part = 0; part < (1 << sampling_log2); part++)
+      local_iafs[worker_number() +  part*__cilkrts_get_nworkers()].memory_access(addr / CACHE_LINE_SIZE);
 #ifdef IAF_VERIFY
     local_verify_iafs[worker_number()].memory_access(addr2 / CACHE_LINE_SIZE);
 #endif
@@ -95,7 +99,8 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
   outs_red << "[" << worker_number() << "] Writing One" << std::endl;
 #endif
 
-  local_iafs[worker_number()].memory_access(addr / CACHE_LINE_SIZE);
+  for (size_t part = 0; part < (1 << sampling_log2); part++)
+    local_iafs[worker_number() +  part*__cilkrts_get_nworkers()].memory_access(addr / CACHE_LINE_SIZE);
 #ifdef IAF_VERIFY
   local_verify_iafs[worker_number()].memory_access(addr / CACHE_LINE_SIZE);
 #endif
