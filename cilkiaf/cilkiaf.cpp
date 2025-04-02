@@ -14,7 +14,7 @@ cilk::ostream_reducer<char> outs_red([]() -> std::basic_ostream<char>& {
 #endif
 
 
-constexpr short sampling_log2 = 5;
+constexpr short sampling_log2 = 1;
 constexpr size_t seed = 98721893579823;
 
 
