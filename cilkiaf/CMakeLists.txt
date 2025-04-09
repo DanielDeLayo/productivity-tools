@@ -7,6 +7,7 @@ set(CILKIAF_SOURCES
   Increment-and-Freeze/bounded_iaf.cc
   Increment-and-Freeze/increment_and_freeze.cc
   Increment-and-Freeze/projection.cc
+  cityhash/src/city.cc  
   )
 
 set(CILKIAF_BITCODE_SOURCE
@@ -15,9 +16,10 @@ set(CILKIAF_BITCODE_SOURCE
   Increment-and-Freeze/bounded_iaf.cc
   Increment-and-Freeze/increment_and_freeze.cc
   Increment-and-Freeze/projection.cc
+  cityhash/src/city.cc  
   )
 
-include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze xxHash)
+include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze cityhash/src cityhash xxHash)
 
 set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS} )
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_CFLAGS)
