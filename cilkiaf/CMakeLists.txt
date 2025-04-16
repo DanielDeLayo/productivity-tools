@@ -1,5 +1,7 @@
 # Build for the Cilkiaf runtime support library.
 
+find_package(OpenSSL REQUIRED)
+
 set(CILKIAF_SOURCES
   cilkiaf.cpp
   cilkiaf_hooks.cpp
@@ -21,7 +23,7 @@ set(CILKIAF_BITCODE_SOURCE
 
 include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze cityhash/src cityhash xxHash)
 
-set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS} )
+set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS})
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_CFLAGS)
 append_list_if(CILKTOOLS_HAS_FDEBUG_DEFAULT_VERSION_EQ_4_FLAG
   -fdebug-default-version=4 CILKIAF_CFLAGS)
@@ -30,7 +32,8 @@ append_rtti_flag(OFF CILKIAF_CFLAGS)
 set(CILKIAF_COMMON_DEFINITIONS)
 append_list_if(CILKTOOLS_HAS_CILK SERIAL_TOOL=0 CILKIAF_COMMON_DEFINITIONS)
 
-set(CILKIAF_DYNAMIC_LINK_FLAGS)
+set(CILKIAF_STATIC_LINK_FLAGS -lcrypto )
+set(CILKIAF_DYNAMIC_LINK_FLAGS ${CILKIAF_STATIC_LINK_FLAGS})
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_DYNAMIC_LINK_FLAGS)
 
 set(CILKIAF_DYNAMIC_CFLAGS ${CILKIAF_CFLAGS})
