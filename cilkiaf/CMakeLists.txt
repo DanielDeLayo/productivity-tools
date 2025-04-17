@@ -10,6 +10,7 @@ set(CILKIAF_SOURCES
   Increment-and-Freeze/increment_and_freeze.cc
   Increment-and-Freeze/projection.cc
   cityhash/src/city.cc  
+  Increment-and-Freeze/MurmurHash3.cpp
   )
 
 set(CILKIAF_BITCODE_SOURCE
@@ -19,6 +20,7 @@ set(CILKIAF_BITCODE_SOURCE
   Increment-and-Freeze/increment_and_freeze.cc
   Increment-and-Freeze/projection.cc
   cityhash/src/city.cc  
+  Increment-and-Freeze/MurmurHash3.cpp
   )
 
 include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze cityhash/src cityhash xxHash)
