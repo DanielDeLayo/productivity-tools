@@ -19,7 +19,7 @@ constexpr size_t seed = 98721893579823;
 
 
 CilkiafImpl_t::CilkiafImpl_t() 
-#ifdef CILKIAF_GLOBAL
+#ifdef IAF_GLOBAL
 : iaf(sampling_log2, seed, 0, 65536, read_maxcache())
 #endif
 {
@@ -56,7 +56,7 @@ CilkiafImpl_t::~CilkiafImpl_t() {
 
   if (getenv("CILKIAF_PRINT"))
   {
-#ifdef CILKIAF_GLOBAL
+#ifdef IAF_GLOBAL
     iaf.csv_success_function(outs_red, iaf.get_success_function(), 1);
 #endif
     if (atoi(getenv("CILKIAF_PRINT")) == 1)
@@ -71,18 +71,24 @@ void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
 #ifdef TRACE_CALLS
   outs_red << "[" << worker_number() << "] Writing" << std::endl;
 #endif
+
   int32_t nbytes2 = num_bytes;
   uint64_t addr2 = addr;
   do {
+#ifdef IAF_SAMPLE
     for (size_t part = 0; part < (1 << sampling_log2); part++)
-      local_iafs[worker_number() +  part*__cilkrts_get_nworkers()].memory_access(addr / CACHE_LINE_SIZE);
+      local_iafs[worker_number() +  part*__cilkrts_get_nworkers()].memory_access(addr2 / CACHE_LINE_SIZE);
+#endif
 #ifdef IAF_VERIFY
     local_verify_iafs[worker_number()].memory_access(addr2 / CACHE_LINE_SIZE);
+#endif
+#ifdef IAF_LOG
+  outs_red << addr2 / CACHE_LINE_SIZE << std::endl;
 #endif
     nbytes2 -= CACHE_LINE_SIZE;
     addr2 += CACHE_LINE_SIZE;
   } while(nbytes2 > 0);
-#ifdef CILKIAF_GLOBAL
+#ifdef IAF_GLOBAL
   const std::lock_guard<std::mutex> lock(iaf_lock);
 
   do {
@@ -99,13 +105,18 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
   outs_red << "[" << worker_number() << "] Writing One" << std::endl;
 #endif
 
+#ifdef IAF_SAMPLE
   for (size_t part = 0; part < (1 << sampling_log2); part++)
     local_iafs[worker_number() +  part*__cilkrts_get_nworkers()].memory_access(addr / CACHE_LINE_SIZE);
+#endif
 #ifdef IAF_VERIFY
   local_verify_iafs[worker_number()].memory_access(addr / CACHE_LINE_SIZE);
 #endif
+#ifdef IAF_LOG
+  outs_red << addr / CACHE_LINE_SIZE << std::endl;
+#endif
 
-#ifdef CILKIAF_GLOBAL
+#ifdef IAF_GLOBAL
   const std::lock_guard<std::mutex> lock(iaf_lock);
   iaf.memory_access(addr / CACHE_LINE_SIZE);
 #endif

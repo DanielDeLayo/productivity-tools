@@ -16,7 +16,16 @@
 
 #include "outs_red.h"
 
+// Some options: Cache vs block TODO both
 #define CACHE_LINE_SIZE 64
+//#define CACHE_LINE_SIZE 4096
+
+// Compiler options. Currnetly they're overrides teehee
+//#define IAF_VERIFY 1
+//#define IAF_GLOBAL 1
+//#define IAF_SAMPLE 1
+#define IAF_LOG 1
+
 
 #define CILKTOOL_API extern "C" __attribute__((visibility("default")))
 
@@ -35,10 +44,8 @@ unsigned inline worker_number() {
 #pragma clang diagnostic pop
 }
 
-#define IAF_VERIFY 1
-
 class CilkiafImpl_t {
-#ifdef CILKIAF_GLOBAL
+#ifdef IAF_GLOBAL
   std::mutex iaf_lock;
   BoundedIAF iaf;
 #endif
