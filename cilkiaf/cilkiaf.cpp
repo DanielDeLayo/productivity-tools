@@ -26,10 +26,12 @@ CilkiafImpl_t::CilkiafImpl_t()
   uint64_t maxcache = read_maxcache();
 
   if (__cilkrts_is_initialized()) {
+#ifdef IAF_SAMPLE
     local_iafs.reserve(__cilkrts_get_nworkers() * (1 << sampling_log2));
     for (size_t part = 0; part < (1 << sampling_log2); part++)
       for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
         local_iafs.emplace_back(sampling_log2, seed, part, 65536, maxcache);
+#endif
 #ifdef IAF_VERIFY
     local_verify_iafs.reserve(__cilkrts_get_nworkers());
     for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
@@ -61,8 +63,10 @@ CilkiafImpl_t::~CilkiafImpl_t() {
 #endif
     if (atoi(getenv("CILKIAF_PRINT")) == 1)
       return;
+#ifdef IAF_SAMPLE
     for (size_t i = 0; i < local_iafs.size(); i++) {
       local_iafs[i].csv_success_function(outs_red, local_iafs[i].get_success_function(), 1);
+#endif
     }
   }
 }
