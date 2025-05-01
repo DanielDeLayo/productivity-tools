@@ -49,7 +49,9 @@ class CilkiafImpl_t {
   std::mutex iaf_lock;
   BoundedIAF iaf;
 #endif
+#ifdef IAF_SAMPLE
   std::vector<BoundedIAF> local_iafs;
+#endif
 #ifdef IAF_VERIFY
   std::vector<BoundedIAF> local_verify_iafs;
 #endif
