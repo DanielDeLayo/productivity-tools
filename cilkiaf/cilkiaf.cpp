@@ -44,15 +44,22 @@ CilkiafImpl_t::CilkiafImpl_t()
 }
 
 CilkiafImpl_t::~CilkiafImpl_t() {
-#ifdef IAF_VERIFY
   for (size_t i = 0; i < __cilkrts_get_nworkers(); i++) {
+#ifdef IAF_SAMPLE
     for (size_t part = 0; part < (1 << sampling_log2); part++) {
       outs_red << "sampled " << i << " " << part << std::endl;
       local_iafs[i + part*__cilkrts_get_nworkers()].csv_success_function(outs_red, local_iafs[i + part*__cilkrts_get_nworkers()].get_success_function(), 1);
     }
+#endif
+#ifdef IAF_VERIFY
     outs_red << "verify " << i << std::endl;
     local_verify_iafs[i].csv_success_function(outs_red, local_verify_iafs[i].get_success_function(), 1);
+#endif
   }
+#ifdef IAF_VERIFY
+  return;
+#endif
+#ifdef IAF_SAMPLE
   return;
 #endif
 
@@ -66,8 +73,8 @@ CilkiafImpl_t::~CilkiafImpl_t() {
 #ifdef IAF_SAMPLE
     for (size_t i = 0; i < local_iafs.size(); i++) {
       local_iafs[i].csv_success_function(outs_red, local_iafs[i].get_success_function(), 1);
-#endif
     }
+#endif
   }
 }
 
