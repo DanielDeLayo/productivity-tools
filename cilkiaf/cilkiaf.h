@@ -24,7 +24,7 @@
 #define IAF_VERIFY 1
 //#define IAF_GLOBAL 1
 #define IAF_SAMPLE 1
-#define IAF_LOG 1
+//#define IAF_LOG 1
 
 
 #define CILKTOOL_API extern "C" __attribute__((visibility("default")))
