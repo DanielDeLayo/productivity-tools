@@ -94,7 +94,7 @@ void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
     local_verify_iafs[worker_number()].memory_access(addr2 / CACHE_LINE_SIZE);
 #endif
 #ifdef IAF_LOG
-  outs_red << addr2 / CACHE_LINE_SIZE << std::endl;
+  std::cerr << addr2 / CACHE_LINE_SIZE << std::endl;
 #endif
     nbytes2 -= CACHE_LINE_SIZE;
     addr2 += CACHE_LINE_SIZE;
@@ -124,7 +124,7 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
   local_verify_iafs[worker_number()].memory_access(addr / CACHE_LINE_SIZE);
 #endif
 #ifdef IAF_LOG
-  outs_red << addr / CACHE_LINE_SIZE << std::endl;
+  std::cerr << addr / CACHE_LINE_SIZE << std::endl;
 #endif
 
 #ifdef IAF_GLOBAL
