@@ -21,10 +21,15 @@
 //#define CACHE_LINE_SIZE 4096
 
 // Compiler options. Currnetly they're overrides teehee
-#define IAF_VERIFY 1
+//#define IAF_VERIFY 1
 //#define IAF_GLOBAL 1
-#define IAF_SAMPLE 1
+//#define IAF_SAMPLE_MANY 1
+#define IAF_SAMPLE_ONE 1
 //#define IAF_LOG 1
+
+#if defined IAF_SAMPLE_ONE && defined IAF_SAMPLE_MANY
+  #error "Disable either sample one or sample many"
+#endif
 
 
 #define CILKTOOL_API extern "C" __attribute__((visibility("default")))
@@ -49,7 +54,7 @@ class CilkiafImpl_t {
   std::mutex iaf_lock;
   BoundedIAF iaf;
 #endif
-#ifdef IAF_SAMPLE
+#if defined IAF_SAMPLE_MANY || defined IAF_SAMPLE_ONE
   std::vector<BoundedIAF> local_iafs;
 #endif
 #ifdef IAF_VERIFY
