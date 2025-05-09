@@ -60,6 +60,7 @@ CilkiafImpl_t::~CilkiafImpl_t() {
     local_iafs[i].csv_success_function(outs_red, local_iafs[i].get_success_function(), 1);
 #endif
 #ifdef IAF_VERIFY
+    outs_red << "sampled " << i << " " << 0 << std::endl; //partition 0
     outs_red << "verify " << i << std::endl;
     local_verify_iafs[i].csv_success_function(outs_red, local_verify_iafs[i].get_success_function(), 1);
 #endif
