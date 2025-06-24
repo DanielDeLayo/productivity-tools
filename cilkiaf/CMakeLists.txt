@@ -1,7 +1,5 @@
 # Build for the Cilkiaf runtime support library.
 
-find_package(OpenSSL REQUIRED)
-
 set(CILKIAF_SOURCES
   cilkiaf.cpp
   cilkiaf_hooks.cpp
@@ -9,8 +7,6 @@ set(CILKIAF_SOURCES
   Increment-and-Freeze/bounded_iaf.cc
   Increment-and-Freeze/increment_and_freeze.cc
   Increment-and-Freeze/projection.cc
-  cityhash/src/city.cc  
-  Increment-and-Freeze/MurmurHash3.cpp
   )
 
 set(CILKIAF_BITCODE_SOURCE
@@ -19,11 +15,9 @@ set(CILKIAF_BITCODE_SOURCE
   Increment-and-Freeze/bounded_iaf.cc
   Increment-and-Freeze/increment_and_freeze.cc
   Increment-and-Freeze/projection.cc
-  cityhash/src/city.cc  
-  Increment-and-Freeze/MurmurHash3.cpp
   )
 
-include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze cityhash/src cityhash xxHash)
+include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze)
 
 set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS})
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_CFLAGS)
@@ -34,7 +28,7 @@ append_rtti_flag(OFF CILKIAF_CFLAGS)
 set(CILKIAF_COMMON_DEFINITIONS)
 append_list_if(CILKTOOLS_HAS_CILK SERIAL_TOOL=0 CILKIAF_COMMON_DEFINITIONS)
 
-set(CILKIAF_STATIC_LINK_FLAGS -lcrypto )
+#set(CILKIAF_STATIC_LINK_FLAGS -lcrypto )
 set(CILKIAF_DYNAMIC_LINK_FLAGS ${CILKIAF_STATIC_LINK_FLAGS})
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_DYNAMIC_LINK_FLAGS)
 
