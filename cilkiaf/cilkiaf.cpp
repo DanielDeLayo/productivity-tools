@@ -14,7 +14,7 @@ cilk::ostream_reducer<char> outs_red([]() -> std::basic_ostream<char>& {
 #endif
 
 
-constexpr short sampling_log2 = 9;
+constexpr short sampling_log2 = 10;
 constexpr size_t seed = 98721893579823;
 
 
@@ -140,6 +140,7 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
 #endif
 
 #ifdef IAF_GLOBAL
+  if (!iaf.should_sample(addr / CACHE_LINE_SIZE)) return;
   const std::lock_guard<std::mutex> lock(iaf_lock);
   iaf.memory_access(addr / CACHE_LINE_SIZE);
 #endif
