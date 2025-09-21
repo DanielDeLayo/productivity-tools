@@ -22,9 +22,9 @@
 
 // Compiler options. Currnetly they're overrides teehee
 //#define IAF_VERIFY 1
-//#define IAF_GLOBAL 1
+#define IAF_GLOBAL 1
 //#define IAF_SAMPLE_MANY 1
-#define IAF_SAMPLE_ONE 1
+//#define IAF_SAMPLE_ONE 1
 //#define IAF_LOG 1
 
 #if defined IAF_SAMPLE_ONE && defined IAF_SAMPLE_MANY
