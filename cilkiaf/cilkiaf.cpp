@@ -14,7 +14,8 @@ cilk::ostream_reducer<char> outs_red([]() -> std::basic_ostream<char>& {
 #endif
 
 
-constexpr short sampling_log2 = 10;
+//constexpr short sampling_log2 = 10;
+#include "sampling_log2.h"
 constexpr size_t seed = 98721893579823;
 
 
@@ -109,6 +110,7 @@ void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
     addr2 += CACHE_LINE_SIZE;
   } while(nbytes2 > 0);
 #ifdef IAF_GLOBAL
+#pragma error incorrect counting!
   const std::lock_guard<std::mutex> lock(iaf_lock);
 
   do {
@@ -141,6 +143,7 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
 
 #ifdef IAF_GLOBAL
   //FIXME: Do we keep track of the total number of accesses properly? Probably not.
+#pragma error incorrect counting!
   if (!iaf.should_sample(addr / CACHE_LINE_SIZE)) return;
   const std::lock_guard<std::mutex> lock(iaf_lock);
   iaf.memory_access(addr / CACHE_LINE_SIZE);
