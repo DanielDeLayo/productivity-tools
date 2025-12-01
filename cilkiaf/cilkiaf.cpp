@@ -140,6 +140,7 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
 #endif
 
 #ifdef IAF_GLOBAL
+  //FIXME: Do we keep track of the total number of accesses properly? Probably not.
   if (!iaf.should_sample(addr / CACHE_LINE_SIZE)) return;
   const std::lock_guard<std::mutex> lock(iaf_lock);
   iaf.memory_access(addr / CACHE_LINE_SIZE);
