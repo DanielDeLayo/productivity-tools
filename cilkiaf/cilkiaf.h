@@ -21,9 +21,9 @@
 //#define CACHE_LINE_SIZE 4096
 
 // Compiler options. Currnetly they're overrides teehee
-//#define IAF_VERIFY 1
-#define IAF_GLOBAL 1
-//#define IAF_SAMPLE_MANY 1
+#define IAF_VERIFY 1
+//#define IAF_GLOBAL 1
+#define IAF_SAMPLE_MANY 1
 //#define IAF_SAMPLE_ONE 1
 //#define IAF_LOG 1
 

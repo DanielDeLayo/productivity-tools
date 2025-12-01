@@ -110,6 +110,7 @@ void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
     addr2 += CACHE_LINE_SIZE;
   } while(nbytes2 > 0);
 #ifdef IAF_GLOBAL
+#pragma error incorrect counting!
   const std::lock_guard<std::mutex> lock(iaf_lock);
 
   do {
@@ -141,6 +142,7 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
 #endif
 
 #ifdef IAF_GLOBAL
+#pragma error incorrect counting!
   if (!iaf.should_sample(addr / CACHE_LINE_SIZE)) return;
   const std::lock_guard<std::mutex> lock(iaf_lock);
   iaf.memory_access(addr / CACHE_LINE_SIZE);
