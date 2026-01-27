@@ -49,6 +49,11 @@ unsigned inline worker_number() {
 #pragma clang diagnostic pop
 }
 
+struct cache_line {
+    uint64_t count;
+    char padding[56];
+};
+
 class CilkiafImpl_t {
 #ifdef IAF_GLOBAL
   std::mutex iaf_lock;
@@ -59,6 +64,9 @@ class CilkiafImpl_t {
 #endif
 #ifdef IAF_VERIFY
   std::vector<BoundedIAF> local_verify_iafs;
+#endif
+#ifdef IAF_GLOBAL
+  std::vector<cache_line> local_counts;
 #endif
 
 

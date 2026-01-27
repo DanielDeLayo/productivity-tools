@@ -1,1 +1,1 @@
-constexpr short sampling_log2 = 2;
+constexpr short sampling_log2 = 10;

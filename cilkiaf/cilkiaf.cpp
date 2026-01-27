@@ -43,6 +43,9 @@ CilkiafImpl_t::CilkiafImpl_t()
     for (size_t i = 0; i < __cilkrts_get_nworkers(); i++)
       local_verify_iafs.emplace_back(0, seed, 0, 65536, maxcache);
 #endif
+#ifdef IAF_GLOBAL
+    local_counts.reserve(__cilkrts_get_nworkers());
+#endif
 
   } else {
     assert(false);
@@ -51,6 +54,11 @@ CilkiafImpl_t::CilkiafImpl_t()
 
 CilkiafImpl_t::~CilkiafImpl_t() {
   for (size_t i = 0; i < __cilkrts_get_nworkers(); i++) {
+#ifdef IAF_GLOBAL
+    uint64_t count = local_counts[worker_number()].count;
+    local_counts[worker_number()] = 0;
+    iaf.inc_access(count);
+#endif
 #ifdef IAF_SAMPLE_MANY
     for (size_t part = 0; part < (1 << sampling_log2); part++) {
       outs_red << "sampled " << i << " " << part << std::endl;
@@ -110,10 +118,22 @@ void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
     addr2 += CACHE_LINE_SIZE;
   } while(nbytes2 > 0);
 #ifdef IAF_GLOBAL
-#pragma error incorrect counting!
-  const std::lock_guard<std::mutex> lock(iaf_lock);
-
   do {
+
+    if (!iaf.should_sample(addr / CACHE_LINE_SIZE)) {
+      local_counts[worker_number()].count++;
+
+      num_bytes -= CACHE_LINE_SIZE;
+      addr += CACHE_LINE_SIZE;
+      continue;
+    }
+
+    const std::lock_guard<std::mutex> lock(iaf_lock);
+  
+    uint64_t count = local_counts[worker_number()].count;
+    local_counts[worker_number()] = 0;
+    iaf.inc_access(count);
+    
     iaf.memory_access(addr / CACHE_LINE_SIZE);
     num_bytes -= CACHE_LINE_SIZE;
     addr += CACHE_LINE_SIZE;
@@ -142,10 +162,16 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
 #endif
 
 #ifdef IAF_GLOBAL
-  //FIXME: Do we keep track of the total number of accesses properly? Probably not.
-#pragma error incorrect counting!
-  if (!iaf.should_sample(addr / CACHE_LINE_SIZE)) return;
+  if (!iaf.should_sample(addr / CACHE_LINE_SIZE)) {
+    local_counts[worker_number()].count++;
+    return;
+  }
   const std::lock_guard<std::mutex> lock(iaf_lock);
+
+  uint64_t count = local_counts[worker_number()].count;
+  local_counts[worker_number()] = 0;
+  iaf.inc_access(count);
+
   iaf.memory_access(addr / CACHE_LINE_SIZE);
 #endif
 }
