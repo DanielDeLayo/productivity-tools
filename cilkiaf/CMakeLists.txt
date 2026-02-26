@@ -18,7 +18,8 @@ set(CILKIAF_BITCODE_SOURCE
   )
 
 # FIXME
-include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze /home/daniel/cilkiaf/build/projects/openmp/runtime/src )
+include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze /gpfs/home/ddelayo/cilkiaf/opencilk/cilktools/cilkiaf/build/projects/openmp/runtime/src )
+link_directories("/gpfs/home/ddelayo/cilkiaf/build/lib")
 
 set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS} -fopenmp)
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_CFLAGS)
