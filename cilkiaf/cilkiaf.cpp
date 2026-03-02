@@ -56,7 +56,7 @@ CilkiafImpl_t::~CilkiafImpl_t() {
   for (size_t i = 0; i < __cilkrts_get_nworkers(); i++) {
 #ifdef IAF_GLOBAL
     uint64_t count = local_counts[worker_number()].count;
-    local_counts[worker_number()] = 0;
+    local_counts[worker_number()].count = 0;
     iaf.inc_access(count);
 #endif
 #ifdef IAF_SAMPLE_MANY
@@ -131,7 +131,7 @@ void CilkiafImpl_t::register_write(uint64_t addr, int32_t num_bytes) {
     const std::lock_guard<std::mutex> lock(iaf_lock);
   
     uint64_t count = local_counts[worker_number()].count;
-    local_counts[worker_number()] = 0;
+    local_counts[worker_number()].count = 0;
     iaf.inc_access(count);
     
     iaf.memory_access(addr / CACHE_LINE_SIZE);
@@ -169,7 +169,7 @@ void CilkiafImpl_t::register_write_one(uint64_t addr) {
   const std::lock_guard<std::mutex> lock(iaf_lock);
 
   uint64_t count = local_counts[worker_number()].count;
-  local_counts[worker_number()] = 0;
+  local_counts[worker_number()].count = 0;
   iaf.inc_access(count);
 
   iaf.memory_access(addr / CACHE_LINE_SIZE);
