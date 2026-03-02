@@ -21,6 +21,8 @@ set(CILKIAF_BITCODE_SOURCE
 include_directories(${CILKTOOLS_SOURCE_DIR}/include Increment-and-Freeze /gpfs/home/ddelayo/cilkiaf/opencilk/cilktools/cilkiaf/build/projects/openmp/runtime/src )
 link_directories("/gpfs/home/ddelayo/cilkiaf/build/lib")
 
+find_library(OMP_LIB NAMES omp libomp HINTS "/gpfs/home/ddelayo/cilkiaf/build/lib")
+
 set(CILKIAF_CFLAGS ${SANITIZER_COMMON_CFLAGS} -fopenmp)
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_CFLAGS)
 append_list_if(CILKTOOLS_HAS_FDEBUG_DEFAULT_VERSION_EQ_4_FLAG
@@ -30,7 +32,7 @@ append_rtti_flag(OFF CILKIAF_CFLAGS)
 set(CILKIAF_COMMON_DEFINITIONS)
 append_list_if(CILKTOOLS_HAS_CILK SERIAL_TOOL=0 CILKIAF_COMMON_DEFINITIONS)
 
-set(CILKIAF_STATIC_LINK_FLAGS -lcrypto -fopenmp)
+set(CILKIAF_STATIC_LINK_FLAGS -fopenmp)
 set(CILKIAF_DYNAMIC_LINK_FLAGS ${CILKIAF_STATIC_LINK_FLAGS})
 append_list_if(CILKTOOLS_HAS_CILK -fopencilk CILKIAF_DYNAMIC_LINK_FLAGS)
 
@@ -40,6 +42,7 @@ set(CILKIAF_DYNAMIC_DEFINITIONS ${CILKIAF_COMMON_DEFINITIONS})
 set(CILKIAF_COMMON_LIBS ${SANITIZER_CXX_ABI_LIBRARY} ${SANITIZER_COMMON_LINK_LIBS} omp)
 
 set(CILKIAF_DYNAMIC_LIBS ${CILKIAF_COMMON_LIBS})
+set(CILKIAF_STATIC_LIBS ${CILKIAF_COMMON_LIBS})
 
 # Setup flags and defs for cilktool bitcode build
 set(CILKIAF_BITCODE_CFLAGS ${CILKIAF_CFLAGS} -emit-llvm)

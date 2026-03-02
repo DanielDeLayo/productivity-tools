@@ -44,7 +44,7 @@ CilkiafImpl_t::CilkiafImpl_t()
       local_verify_iafs.emplace_back(0, seed, 0, 65536, maxcache);
 #endif
 #ifdef IAF_GLOBAL
-    local_counts.reserve(__cilkrts_get_nworkers());
+    local_counts.resize(__cilkrts_get_nworkers());
 #endif
 
   } else {
